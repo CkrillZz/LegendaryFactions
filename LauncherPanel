@@ -1,0 +1,147 @@
+package fr.legendaryfactions.launcher;
+
+import static fr.theshark34.swinger.Swinger.drawFullsizedImage;
+import static fr.theshark34.swinger.Swinger.getTransparentWhite;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+
+import fr.theshark34.openauth.AuthenticationException;
+import fr.theshark34.openlauncherlib.launcher.util.UsernameSaver;
+import fr.theshark34.swinger.Swinger;
+import fr.theshark34.swinger.colored.SColoredBar;
+import fr.theshark34.swinger.event.SwingerEvent;
+import fr.theshark34.swinger.event.SwingerEventListener;
+import fr.theshark34.swinger.textured.STexturedButton;
+
+@SuppressWarnings("serial")
+public class LauncherPanel extends JPanel implements SwingerEventListener{
+	
+	private Image background = Swinger.getResource("background.png");
+	
+	private UsernameSaver saver = new UsernameSaver(Launcher.LF_INFOS);
+	
+	private JTextField usernameField = new JTextField(saver.getUsername(""));
+	private JPasswordField passwordField = new JPasswordField(saver.getUsername(""));
+	
+	private STexturedButton playButton = new STexturedButton(Swinger.getResource("playbutton.png"));
+	private STexturedButton quitButton = new STexturedButton(Swinger.getResource("quitbutton.png"));
+	private STexturedButton hideButton = new STexturedButton(Swinger.getResource("hidebutton.png"));
+	
+	private SColoredBar progressBar = new SColoredBar(getTransparentWhite(100), getTransparentWhite(175));
+	private JLabel infoLabel = new JLabel("Prêt à se connecter !", SwingConstants.CENTER);
+	
+	public LauncherPanel() {
+		this.setLayout(null);
+		
+		usernameField.setForeground(Color.WHITE);
+		usernameField.setFont(usernameField.getFont().deriveFont(20F));
+		usernameField.setCaretColor(Color.GRAY);
+		usernameField.setOpaque(false);
+		usernameField.setBorder(null);
+		usernameField.setBounds(564, 254, 265, 42);
+		this.add(usernameField);
+		
+		passwordField.setForeground(Color.WHITE);
+		passwordField.setFont(usernameField.getFont());
+		passwordField.setCaretColor(Color.GRAY);
+		passwordField.setOpaque(false);
+		passwordField.setBorder(null);
+		passwordField.setBounds(564, 375, 265, 42);
+		this.add(passwordField);
+		
+		playButton.setBounds(562, 464);
+		playButton.addEventListener(this);
+		this.add(playButton);
+		
+		quitButton.setBounds(923, 18);
+		quitButton.addEventListener(this);
+		this.add(quitButton);
+		
+		hideButton.setBounds(880, 18);
+		hideButton.addEventListener(this);
+		this.add(hideButton);
+		
+		progressBar.setBounds(12, 593, 952, 20);
+		this.add(progressBar);
+		
+		infoLabel.setForeground(Color.WHITE);
+		infoLabel.setFont(usernameField.getFont());
+		infoLabel.setBounds(12, 560, 961, 25);
+		this.add(infoLabel);
+	}
+	
+	@Override
+	public void onEvent(SwingerEvent e) {
+		if(e.getSource() == playButton) {
+			setFieldsEnabled(false);
+			
+			if (usernameField.getText().replaceAll("", " ").length() == 0 || passwordField.getText().length() == 0) {
+				JOptionPane.showMessageDialog(this, "Veuillez remplir les champs 'Mot de passe' et 'Pseudo'.", "Erreur", JOptionPane.ERROR_MESSAGE);
+				setFieldsEnabled(true);
+				return;
+			}
+			
+			Thread t= new Thread() {
+				@Override
+				public void run() {
+					try {
+						Launcher.auth(usernameField.getText(), passwordField.getText());
+					} catch (AuthenticationException e) {
+						JOptionPane.showMessageDialog(LauncherPanel.this, "Connexion interrompue:"+ e.getErrorModel().getErrorMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
+						setFieldsEnabled(true);
+						return;
+					}
+					
+					try {
+						Launcher.update();
+					} catch (Exception e) {
+						Launcher.interruptThread();
+						JOptionPane.showMessageDialog(LauncherPanel.this, "Impossible de se connecter au serveur de MAJ"+ e, "Erreur", JOptionPane.ERROR_MESSAGE);
+						setFieldsEnabled(true);
+						return;
+					}
+					
+					System.out.println("Check");
+					
+				}
+			};
+			t.start();
+		} else if (e.getSource() == quitButton)
+			System.exit(0);
+		else if (e.getSource() == hideButton)
+			LauncherFrame.getInstance().setState(JFrame.ICONIFIED);
+		
+	}
+	
+	@Override
+	public void paintComponent(Graphics graphics) {
+		super.paintComponent(graphics);
+		
+		drawFullsizedImage(graphics, this, background);
+	}
+	
+	private void setFieldsEnabled(boolean enabled) {
+		usernameField.setEnabled(enabled);
+		passwordField.setEnabled(enabled);
+		playButton.setEnabled(enabled);
+	}
+
+	public SColoredBar getProgressBar() {
+		return progressBar;
+	}
+	
+	public void setInfoText(String text) {
+		infoLabel.setText(text);
+	}
+	
+}
