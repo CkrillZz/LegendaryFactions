@@ -6,6 +6,7 @@ import static fr.theshark34.swinger.Swinger.getTransparentWhite;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -43,7 +44,7 @@ public class LauncherPanel extends JPanel implements SwingerEventListener{
 	public LauncherPanel() {
 		this.setLayout(null);
 		
-		usernameField.setForeground(Color.WHITE);
+		usernameField.setForeground(Color.BLACK);
 		usernameField.setFont(usernameField.getFont().deriveFont(20F));
 		usernameField.setCaretColor(Color.GRAY);
 		usernameField.setOpaque(false);
@@ -51,7 +52,7 @@ public class LauncherPanel extends JPanel implements SwingerEventListener{
 		usernameField.setBounds(564, 254, 265, 42);
 		this.add(usernameField);
 		
-		passwordField.setForeground(Color.WHITE);
+		passwordField.setForeground(Color.BLACK);
 		passwordField.setFont(usernameField.getFont());
 		passwordField.setCaretColor(Color.GRAY);
 		passwordField.setOpaque(false);
@@ -71,7 +72,7 @@ public class LauncherPanel extends JPanel implements SwingerEventListener{
 		hideButton.addEventListener(this);
 		this.add(hideButton);
 		
-		progressBar.setBounds(12, 593, 952, 20);
+		progressBar.setBounds(13, 596, 951, 20);
 		this.add(progressBar);
 		
 		infoLabel.setForeground(Color.WHITE);
@@ -97,7 +98,7 @@ public class LauncherPanel extends JPanel implements SwingerEventListener{
 					try {
 						Launcher.auth(usernameField.getText(), passwordField.getText());
 					} catch (AuthenticationException e) {
-						JOptionPane.showMessageDialog(LauncherPanel.this, "Connexion interrompue:"+ e.getErrorModel().getErrorMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(LauncherPanel.this, "Connexion interrompue : "+ e.getErrorModel().getErrorMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
 						setFieldsEnabled(true);
 						return;
 					}
@@ -106,12 +107,17 @@ public class LauncherPanel extends JPanel implements SwingerEventListener{
 						Launcher.update();
 					} catch (Exception e) {
 						Launcher.interruptThread();
-						JOptionPane.showMessageDialog(LauncherPanel.this, "Impossible de se connecter au serveur de MAJ"+ e, "Erreur", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(LauncherPanel.this, "Impossible de se connecter au serveur de MAJ : "+ e, "Erreur", JOptionPane.ERROR_MESSAGE);
 						setFieldsEnabled(true);
 						return;
 					}
 					
-#Tester					System.out.println("Check");
+					try {
+						Launcher.launch();
+					} catch (IOException e) {
+						JOptionPane.showMessageDialog(LauncherPanel.this, "Impossible de lancer le logiciel : "+ e, "Erreur", JOptionPane.ERROR_MESSAGE);
+						setFieldsEnabled(true);
+					}
 					
 				}
 			};
