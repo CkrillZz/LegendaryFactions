@@ -1,0 +1,148 @@
+package eu.rosenmc.client;
+
+import static fr.theshark34.swinger.Swinger.drawFullsizedImage;
+import static fr.theshark34.swinger.Swinger.getResource;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+
+import fr.theshark34.openauth.AuthenticationException;
+import fr.theshark34.openlauncherlib.launcher.util.UsernameSaver;
+import fr.theshark34.swinger.colored.SColoredBar;
+import fr.theshark34.swinger.event.SwingerEvent;
+import fr.theshark34.swinger.event.SwingerEventListener;
+import fr.theshark34.swinger.textured.STexturedButton;
+
+@SuppressWarnings("serial")
+public class LauncherPanel extends JPanel implements SwingerEventListener {
+	
+	private Image background = getResource("background.png");
+	
+	private UsernameSaver saver = new UsernameSaver(Launcher.ROSEN_INFOS);
+	
+	private JTextField usernameField = new JTextField(saver.getUsername(""));
+	
+	private JPasswordField passwordField = new JPasswordField();
+	
+	private STexturedButton connectButton = new STexturedButton(getResource("connexion.png"));
+	private STexturedButton quitButton = new STexturedButton(getResource("quit.png"));
+	private STexturedButton hideButton = new STexturedButton(getResource("hide.png"));
+	private STexturedButton registerButton = new STexturedButton(getResource("register.png"));
+	private STexturedButton forgotpasswordButton = new STexturedButton(getResource("forgotpassword.png"));
+	
+	private SColoredBar progressBar = new SColoredBar(new Color(255, 255, 255, 70), new Color(0, 0, 0, 85));
+	private JLabel infoLabel = new JLabel("Pret au lancement !");
+	
+	public LauncherPanel() {
+		this.setLayout(null);
+		
+		usernameField.setForeground(Color.BLACK);
+		usernameField.setFont(usernameField.getFont().deriveFont(20F));
+		usernameField.setOpaque(false);
+		usernameField.setBorder(null);
+		usernameField.setBounds(367, 222, 232, 26);
+		this.add(usernameField);
+		
+		passwordField.setForeground(Color.BLACK);
+		passwordField.setFont(passwordField.getFont().deriveFont(20F));
+		passwordField.setOpaque(false);
+		passwordField.setBorder(null);
+		passwordField.setBounds(366, 338, 232, 26);
+		this.add(passwordField);
+		
+		connectButton.setBounds(354, 410);
+		connectButton.addEventListener(this);
+		this.add(connectButton);
+		
+		quitButton.setBounds(920, 10);
+		quitButton.addEventListener(this);
+		this.add(quitButton);
+		
+		hideButton.setBounds(880, 10);
+		hideButton.addEventListener(this);
+		this.add(hideButton);
+		
+		registerButton.setBounds(356, 257);
+		registerButton.addEventListener(this);
+		this.add(registerButton);
+		registerButton.setOpaque(true);
+
+		
+		forgotpasswordButton.setBounds(355, 373);
+		forgotpasswordButton.addEventListener(this);
+		this.add(forgotpasswordButton);
+		
+		progressBar.setBounds(0, 605, 955, 20);
+		this.add(progressBar);
+		
+		infoLabel.setForeground(Color.BLACK);
+		infoLabel.setFont(usernameField.getFont());
+		infoLabel.setBounds(399, 582, 955, 20);
+		this.add(infoLabel);
+		
+	}
+	
+	@Override
+	public void onEvent (SwingerEvent event) {
+		if(event.getSource() == connectButton) {
+			setFieldsEnabled(false);
+			
+			if(usernameField.getText().replaceAll(" ", "").length() == 0 || passwordField.getText().length() == 0) {
+				JOptionPane.showMessageDialog(this, "Veuillez entrer un pseudo et/ou un mot de passe valide", "[Erreur] Impossible de se connecter", JOptionPane.ERROR_MESSAGE);
+				setFieldsEnabled(true);
+				return;
+			}
+			
+			Thread t = new Thread() {
+				@Override
+				public void run() {
+					try {
+						Launcher.auth(usernameField.getText(), passwordField.getText());
+					} catch(AuthenticationException e) {
+						JOptionPane.showMessageDialog(LauncherPanel.this, "Reponse: " + e.getErrorModel().getErrorMessage(), "[Erreur] Authentification", JOptionPane.ERROR_MESSAGE);
+						setFieldsEnabled(true);
+						return;
+					}
+					
+				}
+			};
+			t.start();		
+		} else if(event.getSource() == quitButton)
+			System.exit(0);
+		else if (event.getSource() == hideButton)
+			LauncherFrame.getInstance().setState(JFrame.ICONIFIED);
+		else if (event.getSource() == registerButton)
+			JOptionPane.showMessageDialog(LauncherPanel.this, "Cette fonctionnalité n'est pas encore disponible", "[Erreur] En développement", JOptionPane.ERROR_MESSAGE);
+		else if (event.getSource() == forgotpasswordButton)
+			JOptionPane.showMessageDialog(LauncherPanel.this, "Cette fonctionnalité n'est pas encore disponible", "[Erreur] En développement", JOptionPane.ERROR_MESSAGE);
+	}
+	
+	@Override
+	public void paintComponent(Graphics graphics) {
+		super.paintComponent(graphics);
+		drawFullsizedImage(graphics, this, background);
+	}
+	
+	private void setFieldsEnabled(boolean enabled) {
+		usernameField.setEnabled(enabled);
+		passwordField.setEnabled(enabled);
+		connectButton.setEnabled(enabled);
+	}
+	
+	public SColoredBar getProgressBar() {
+		return progressBar;
+	}
+	
+	public void setInfoText(String text) {
+		infoLabel.setText(text);
+	}
+
+}
