@@ -1,0 +1,30 @@
+package eu.rosenmc.client;
+
+import java.io.File;
+
+import fr.theshark34.openauth.AuthPoints;
+import fr.theshark34.openauth.AuthenticationException;
+import fr.theshark34.openauth.Authenticator;
+import fr.theshark34.openauth.model.AuthAgent;
+import fr.theshark34.openauth.model.response.AuthResponse;
+import fr.theshark34.openlauncherlib.launcher.AuthInfos;
+import fr.theshark34.openlauncherlib.launcher.GameInfos;
+import fr.theshark34.openlauncherlib.launcher.GameTweak;
+import fr.theshark34.openlauncherlib.launcher.GameType;
+import fr.theshark34.openlauncherlib.launcher.GameVersion;
+
+public class Launcher {
+	
+	public static final GameVersion ROSEN_VERS = new GameVersion("1.7.10", GameType.V1_7_10);
+	public static final GameInfos ROSEN_INFOS = new GameInfos("RosenMC", ROSEN_VERS, true, new GameTweak[] {GameTweak.FORGE});
+	public static final File ROSEN_DIR = ROSEN_INFOS.getGameDir();
+	
+	private static AuthInfos authInfos;
+
+	public static void auth(String username, String password)throws AuthenticationException {
+		Authenticator authenticator = new Authenticator(Authenticator.MOJANG_AUTH_URL, AuthPoints.NORMAL_AUTH_POINTS);
+		AuthResponse response = authenticator.authenticate(AuthAgent.MINECRAFT, username, password, "");
+		authInfos = new AuthInfos(response.getSelectedProfile().getName(), response.getAccessToken(), response.getSelectedProfile().getId());
+	}
+	
+}
